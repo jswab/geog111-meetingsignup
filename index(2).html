@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEOG 111 — Drop-In Meeting Signup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EEF2F1; --card: #FFFFFF; --ink: #16323F; --ink-soft: #4A6572;
+    --teal: #0E7C86; --teal-dark: #0A5960; --amber: #C98A3B; --clay: #B5563C;
+    --line: #C7D2CF; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    background: var(--paper);
+    background-image: repeating-linear-gradient(115deg, rgba(22,50,63,0.035) 0px, rgba(22,50,63,0.035) 1px, transparent 1px, transparent 42px);
+    color: var(--ink); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5; min-height: 100vh;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 96px; }
+  header.page-head { margin-bottom: 36px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--teal-dark); margin: 0 0 8px;
+  }
+  h1 {
+    font-family: 'Spectral', Georgia, serif; font-weight: 600;
+    font-size: clamp(28px, 4vw, 38px); margin: 0 0 12px; color: var(--ink);
+  }
+  .lede { color: var(--ink-soft); font-size: 15.5px; max-width: 58ch; margin: 0; }
+  .req-note {
+    margin-top: 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink);
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--teal);
+    padding: 10px 14px; border-radius: 4px; display: inline-block;
+  }
+  .meeting-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+  .meeting-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .meeting-card:hover { border-color: var(--teal); }
+  .meeting-card.selected { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(14,124,134,0.18); }
+  .meeting-card.full { opacity: 0.55; cursor: not-allowed; }
+  .meeting-card.full:hover { border-color: var(--line); }
+  .meeting-card input[type="radio"] { accent-color: var(--teal); width: 18px; height: 18px; flex-shrink: 0; }
+  .meeting-main { flex: 1; min-width: 0; }
+  .meeting-title { font-weight: 600; font-size: 16px; margin: 0 0 4px; }
+  .meeting-meta { color: var(--ink-soft); font-size: 13.5px; margin: 0; }
+  .gauge { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: 128px; }
+  .gauge-track { width: 120px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .gauge-fill { height: 100%; border-radius: 3px; }
+  .gauge-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.02em; }
+  form.signup-form { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  form.signup-form h2 { font-family: 'Spectral', Georgia, serif; font-size: 19px; margin: 0 0 4px; }
+  form.signup-form .sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 18px; }
+  .field { margin-bottom: 14px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  input[type="text"], input[type="email"] {
+    width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid var(--line);
+    border-radius: 6px; font-family: inherit; color: var(--ink); background: var(--paper);
+  }
+  input:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  button {
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; background: var(--teal);
+    color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer;
+    transition: background .15s ease;
+  }
+  button:hover { background: var(--teal-dark); }
+  button:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+  button.secondary { background: transparent; color: var(--teal-dark); border: 1px solid var(--line); font-weight: 500; }
+  button.secondary:hover { border-color: var(--teal); background: transparent; }
+  .status-msg { font-size: 14px; margin-top: 12px; padding: 10px 14px; border-radius: 6px; display:none; }
+  .status-msg.show { display: block; }
+  .status-msg.error { background: #F7E7E2; color: var(--clay); border: 1px solid #E4BFAF; }
+  .status-msg.success { background: #E4F1EE; color: var(--teal-dark); border: 1px solid #BEDAD5; }
+  .confirm-card { background: var(--card); border: 1px solid var(--teal); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 40px; }
+  .confirm-card h2 { font-family: 'Spectral', Georgia, serif; font-size: 20px; margin: 0 0 8px; color: var(--teal-dark); }
+  .confirm-count { font-family: 'JetBrains Mono', monospace; font-size: 14px; margin: 12px 0 16px; color: var(--ink-soft); }
+  .confirm-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .checker { margin-top: 28px; }
+  .checker summary { cursor: pointer; font-size: 13.5px; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; }
+  .checker-body { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .checker-body input { flex: 1; min-width: 200px; }
+  .empty-state { background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); padding: 32px 24px; text-align: center; color: var(--ink-soft); margin-bottom: 40px; }
+  footer { color: var(--ink-soft); font-size: 12.5px; text-align: center; margin-top: 50px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">GEOG 111 — Digital Earth</p>
+    <h1>Drop-in meeting signup</h1>
+    <p class="lede">Pick a meeting below and reserve your seat. Seats are limited, so once a session is full it'll close automatically.</p>
+    <p class="req-note" id="reqNote"></p>
+  </header>
+
+  <div id="meetingListWrap">
+    <div class="meeting-list" id="meetingList" role="radiogroup" aria-label="Available drop-in meetings"></div>
+  </div>
+
+  <form class="signup-form" id="signupForm" hidden>
+    <h2>Reserve your seat</h2>
+    <p class="sub" id="selectedMeetingLabel"></p>
+    <div class="field">
+      <label for="studentName">Full name</label>
+      <input type="text" id="studentName" required autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="studentEmail">Email</label>
+      <input type="email" id="studentEmail" required autocomplete="email">
+    </div>
+    <button type="submit" id="submitBtn">Sign up</button>
+    <div class="status-msg" id="formStatus"></div>
+  </form>
+
+  <div class="confirm-card" id="confirmCard" hidden></div>
+
+  <details class="checker">
+    <summary>Already signed up? Check how many you've completed</summary>
+    <div class="checker-body">
+      <input type="email" id="checkEmail" placeholder="you@vols.utk.edu">
+      <button type="button" class="secondary" id="checkBtn">Check</button>
+    </div>
+    <div class="status-msg" id="checkStatus"></div>
+  </details>
+
+  <footer>GEOG 111 · Digital Earth</footer>
+</div>
+
+<script>
+// ------------------------------------------------------------
+// CONFIG — paste in your Apps Script Web app URL after deploying
+// (Deploy > New deployment > Web app > copy the URL it gives you).
+// ------------------------------------------------------------
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4_Xa6tgQn7Wh1GMja22S3g5o0DpaH94tAI70JfbVWuCPifdQGuQhLWybvSDZULIrBHw/exec';
+const REQUIRED_SIGNUPS = 3;
+const MEETING_DURATION_MINUTES = 50;
+
+// ------------------------------------------------------------
+// JSONP helper — talks to the Apps Script backend via a <script>
+// tag instead of fetch(), which sidesteps Apps Script's CORS
+// quirks entirely rather than fighting them.
+// ------------------------------------------------------------
+function jsonpRequest(params, timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    let settled = false;
+
+    const cleanup = () => {
+      delete window[callbackName];
+      script.remove();
+      clearTimeout(timer);
+    };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Request timed out'));
+    }, timeoutMs);
+
+    window[callbackName] = (data) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Request failed to load'));
+    };
+
+    const query = new URLSearchParams({ ...params, callback: callbackName }).toString();
+    script.src = `${APPS_SCRIPT_URL}?${query}`;
+    document.body.appendChild(script);
+  });
+}
+
+const meetingListEl = document.getElementById('meetingList');
+const meetingListWrap = document.getElementById('meetingListWrap');
+const signupForm = document.getElementById('signupForm');
+const selectedMeetingLabel = document.getElementById('selectedMeetingLabel');
+const formStatus = document.getElementById('formStatus');
+const submitBtn = document.getElementById('submitBtn');
+const confirmCard = document.getElementById('confirmCard');
+const reqNote = document.getElementById('reqNote');
+
+let meetings = [];
+let selectedMeeting = null;
+
+function fmtDateTime(iso) {
+  return new Date(iso).toLocaleString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit',
+  });
+}
+
+function gaugeColor(remaining, capacity) {
+  if (remaining <= 0) return 'var(--clay)';
+  if (remaining / capacity <= 0.2) return 'var(--amber)';
+  return 'var(--teal)';
+}
+
+function renderMeetings() {
+  meetingListEl.innerHTML = '';
+  if (!meetings.length) {
+    meetingListWrap.innerHTML = `<div class="empty-state">No drop-in meetings are open for signup yet. Check back soon — your instructor is still adding sessions.</div>`;
+    return;
+  }
+  meetings.forEach((m) => {
+    const full = m.seats_remaining <= 0;
+    const pct = Math.max(0, Math.min(100, (m.seats_taken / m.capacity) * 100));
+    const color = gaugeColor(m.seats_remaining, m.capacity);
+    const card = document.createElement('label');
+    card.className = 'meeting-card' + (full ? ' full' : '');
+    card.innerHTML = `
+      <input type="radio" name="meeting" value="${m.id}" ${full ? 'disabled' : ''}>
+      <div class="meeting-main">
+        <p class="meeting-title">${m.title}</p>
+        <p class="meeting-meta">${fmtDateTime(m.meeting_datetime)} · ${m.location}</p>
+      </div>
+      <div class="gauge">
+        <div class="gauge-track"><div class="gauge-fill" style="width:${pct}%; background:${color};"></div></div>
+        <span class="gauge-label" style="color:${color};">${full ? 'FULL' : `${m.seats_remaining} of ${m.capacity} open`}</span>
+      </div>`;
+    card.querySelector('input').addEventListener('change', () => selectMeeting(m, card));
+    meetingListEl.appendChild(card);
+  });
+}
+
+function selectMeeting(meeting, cardEl) {
+  selectedMeeting = meeting;
+  document.querySelectorAll('.meeting-card').forEach((c) => c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  selectedMeetingLabel.textContent = `${meeting.title} — ${fmtDateTime(meeting.meeting_datetime)}`;
+  signupForm.hidden = false;
+  signupForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function loadMeetings() {
+  try {
+    const result = await jsonpRequest({ action: 'availability' });
+    if (!result.success) throw new Error(result.error || 'unknown error');
+    meetings = result.meetings;
+    renderMeetings();
+  } catch (err) {
+    meetingListWrap.innerHTML = `<div class="empty-state">Couldn't load meetings right now. Try refreshing the page.</div>`;
+    console.error(err);
+  }
+}
+
+function showStatus(el, message, type) {
+  el.textContent = message;
+  el.className = `status-msg show ${type}`;
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function toICSDate(date) {
+  return date.getUTCFullYear().toString() + pad(date.getUTCMonth() + 1) + pad(date.getUTCDate()) +
+    'T' + pad(date.getUTCHours()) + pad(date.getUTCMinutes()) + pad(date.getUTCSeconds()) + 'Z';
+}
+
+function downloadICS(meeting) {
+  const start = new Date(meeting.meeting_datetime);
+  const end = new Date(start.getTime() + MEETING_DURATION_MINUTES * 60 * 1000);
+  const lines = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GEOG 111//Drop-in Signup//EN', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:geog111-dropin-${meeting.meeting_id}-${Date.now()}@geog111`,
+    `DTSTAMP:${toICSDate(new Date())}`, `DTSTART:${toICSDate(start)}`, `DTEND:${toICSDate(end)}`,
+    `SUMMARY:${meeting.title}`, `LOCATION:${meeting.location}`,
+    'DESCRIPTION:GEOG 111 drop-in meeting.', 'END:VEVENT', 'END:VCALENDAR',
+  ];
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'geog111-dropin.ics'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function showConfirmation(result, email) {
+  signupForm.hidden = true;
+  let count = null;
+  try {
+    const countResult = await jsonpRequest({ action: 'count', email });
+    count = countResult.count;
+  } catch (err) {
+    console.error(err);
+  }
+  const remaining = Math.max(0, REQUIRED_SIGNUPS - (count ?? 1));
+  confirmCard.hidden = false;
+  confirmCard.innerHTML = `
+    <h2>You're signed up</h2>
+    <p>${result.title} — ${fmtDateTime(result.meeting_datetime)}<br>${result.location}</p>
+    <p class="confirm-count">${count ?? '—'} of ${REQUIRED_SIGNUPS} required drop-ins completed${remaining > 0 ? ` — ${remaining} to go` : ` — you're all set!`}</p>
+    <div class="confirm-actions">
+      <button type="button" id="downloadIcsBtn">Add to calendar (.ics)</button>
+      <button type="button" class="secondary" onclick="location.reload()">Sign up for another</button>
+    </div>`;
+  document.getElementById('downloadIcsBtn').addEventListener('click', () => downloadICS(result));
+  confirmCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+signupForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!selectedMeeting) return;
+  const name = document.getElementById('studentName').value.trim();
+  const email = document.getElementById('studentEmail').value.trim();
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Signing up…';
+
+  let data;
+  try {
+    data = await jsonpRequest({ action: 'signup', meetingId: selectedMeeting.id, name, email });
+  } catch (err) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign up';
+    showStatus(formStatus, 'Something went wrong. Please try again.', 'error');
+    console.error(err);
+    return;
+  }
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Sign up';
+
+  if (!data.success) {
+    const messages = {
+      full: 'That meeting just filled up — pick another one below.',
+      already_signed_up: "You're already signed up for that meeting.",
+      meeting_not_found: 'That meeting is no longer available.',
+      busy: 'The sign-up sheet is busy right now — try again in a moment.',
+      missing_fields: 'Please fill in your name and email.',
+    };
+    showStatus(formStatus, messages[data.error] || 'Could not complete signup.', 'error');
+    if (data.error === 'full') loadMeetings();
+    return;
+  }
+  await showConfirmation(data, email);
+  loadMeetings();
+});
+
+document.getElementById('checkBtn').addEventListener('click', async () => {
+  const email = document.getElementById('checkEmail').value.trim();
+  const statusEl = document.getElementById('checkStatus');
+  if (!email) return;
+  let count;
+  try {
+    const result = await jsonpRequest({ action: 'count', email });
+    count = result.count;
+  } catch (err) {
+    showStatus(statusEl, 'Could not check that email right now.', 'error');
+    return;
+  }
+  const remaining = Math.max(0, REQUIRED_SIGNUPS - count);
+  showStatus(statusEl, `${count} of ${REQUIRED_SIGNUPS} required drop-ins completed${remaining > 0 ? ` — ${remaining} to go.` : ` — you're all set!`}`, 'success');
+});
+
+reqNote.textContent = `You need to attend ${REQUIRED_SIGNUPS} of these across the semester.`;
+loadMeetings();
+</script>
+</body>
+</html>
